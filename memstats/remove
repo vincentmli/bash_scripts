@@ -1,0 +1,6 @@
+#!/bin/sh
+/usr/bin/bigstart stop memstats; /usr/bin/bigstart status memstats
+echo "Deleting memstats..."
+/usr/bin/bigstart erase memstats
+/bin/rm -rf  /root/bin
+/bin/rm -f  /etc/bigstart/scripts/memstats

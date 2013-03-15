@@ -1,0 +1,9 @@
+#clear some git commit history in github
+
+- reset -hard an_older_commit (where backto the commit I want to keep)
+- git push --force origin master
+
+git reset --hard HEAD^ (repeat)
+git push --force origin master
+
+then the commit history on github will be cleared

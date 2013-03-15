@@ -1,0 +1,26 @@
+Scripts to monitor BIGIP memory status using bigstart.
+
+CXXXXXX = customer case number
+<HOSTNAME> = BIGIP hostname
+<Mon-day-HourMinute> = time stamp of when the  script is started
+
+
+2#tar xvf CXXXXXX-scripts.tar;  cd CXXXXXX-scripts
+3#./install
+
+After step 3, the scripts will automatically start up and start monitoring system memory stats, the log file is generated under /var/tmp, the file name looks like <HOSTNAME>-<Mon-Day-HourMinute>-stats_log.X
+
+You could also see the log file end with X, Y or Z which is that the log file get rotated every 8 hour so one single log file does not get too large. 
+
+4, You can stop the script anytime by:
+#bigstart stop memstats
+
+5, start it again:
+
+#bigstart start memstats
+
+memstats will automatically start when BIGIP reboot
+
+6,To delete the script, you can simply run the remove script in CXXXXXX-scripts directory
+#./remove
+

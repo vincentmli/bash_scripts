@@ -1,0 +1,42 @@
+# hoststats : to gain several parameters of load at every minute
+#!/bin/sh -#!/bin/sh -
+if [ $# -ne 0 ]; then
+    SIDE="X"
+    WHERE=/var/tmp
+    WHAT=$HOSTNAME
+    WHEN=`date +%h-%d-%H%M`
+    OUTPUT=$WHERE/$WHAT-$WHEN-$1.$SIDE
+else
+    echo "The output is redirected to console" 1>&2
+    OUTPUT="/dev/console"
+fi
+
+LOOP_COUNT=0
+while true; do {
+    LOOP_COUNT=`expr $LOOP_COUNT + 1`
+    /bin/date >> $OUTPUT
+    /bin/ps xl --sort=-vsize >> $OUTPUT; 
+    /usr/bin/vmstat 10 2 >> $OUTPUT;
+    /usr/bin/free >> $OUTPUT;
+    /bin/bigpipe memory >> $OUTPUT;
+    /usr/bin/top -cbn1 >> $OUTPUT;
+    /usr/bin/tmctl -a >> $OUTPUT;
+    /bin/cat /proc/`pidof tmm.1`/status >> $OUTPUT; 
+    /bin/cat /proc/`pidof tmm.1`/stat >> $OUTPUT;
+
+    /bin/sync
+    sleep 60 
+    if [ $LOOP_COUNT -eq 480 ]; then
+        if [ "$SIDE" = "X" ]; then
+            SIDE="Y"
+        elif [ "$SIDE" = "Y" ]; then
+            SIDE="Z"
+        else
+        SIDE="X"
+        fi
+    OUTPUT=$WHERE/$WHAT-$WHEN-$1.$SIDE
+    /bin/cp /dev/null $OUTPUT
+    LOOP_COUNT=0
+    fi
+}
+done
