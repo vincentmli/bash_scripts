@@ -8,5 +8,10 @@ echo -en $(</root/udp.hex) | nc -u 10.1.1.64 53
 
 #\x3e\x46\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03\x77\x77\x77\x07\x65\x78\x61\x6d\x70\x6c\x65\x03\x63
 
-#feed the malformed bad packet to the virtual server with the irule, it will cause tmm spin up cpu and tmm got sigaborted in the end. 
+#feed the malformed bad packet to the virtual server with the DNS decoding irule, it will cause tmm spin up cpu and tmm got sigaborted in the end. 
+
+https://devcentral.f5.com/wiki/iRules.dns_decoding.ashx
+
+modified irule to validate the malformed dns udp packet in comment
+
 
