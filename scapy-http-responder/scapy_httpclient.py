@@ -1,8 +1,7 @@
 #!/usr/bin/python
 '''
-act like simple http server to send sequence of predefined response
-to simulate customers case
-https://tron.f5net.com/sr/1-1297458280/
+act like simple http client to ack data from http server 
+https://tron.f5net.com/sr/1-1470180311/
 
 @author: Vincent Li 
 '''
