@@ -1,9 +1,17 @@
 #!/usr/bin/python
 '''
+do iptables -A OUTPUT -p tcp --tcp-flags RST RST -s 10.1.72.8 -j DROP on client to drop Linux outging rst
 act like simple http client to establish 3WHS with http server and ack data from server 
 with 0 receive window, then update receive window
 https://tron.f5net.com/sr/1-1470180311/
-ID 520413-5
+repro ID 520413-5 condition and order of event
+1, tmm ticks > 2^31, can be verified from tsval when timestamp option enabled, change system clock and sync 
+to hardware clock and restart tmm to manually increase tmm ticks
+2, virtual send 1460 packets
+3, first ack 1459 win 0
+4, second ack 1 win 0
+5, win update
+6 virtual send new tcp segment in ~5 seconds 
 
 @author: Vincent Li 
 '''
@@ -13,9 +21,11 @@ from scapy.packet import ls, Raw
 from scapy.sendrecv import sniff, send
 from time import sleep
 import scapy.all
+import random
 HOSTADDR = "10.1.72.83"
 TCPPORT = 80 
 SEQ_NUM = 100
+SRCPORT =random.randint(1045, 65000)
 
 get='GET / HTTP/1.0\n\n'
 
@@ -63,7 +73,8 @@ if __name__ == '__main__':
     print "Simple scapy http client "
     scapy.all.conf.iface = "eth0"
     ip=IP(dst=HOSTADDR)
-    SYN=ip/TCP(sport=12349, dport=80, flags="S")
+    SYN=ip/TCP(sport=SRCPORT, dport=80, flags="S", options=[('Timestamp',(0,0))])
+    #SYN=ip/TCP(sport=12340, dport=80, flags="S")
     # Send SYN and receive SYN,ACK
     print "\n[*] Sending our SYN packet"
     send(SYN)
