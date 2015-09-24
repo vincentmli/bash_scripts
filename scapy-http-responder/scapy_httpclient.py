@@ -41,7 +41,7 @@ def tcp_monitor_callback(pkt):
         print("tcp incoming connection")
         ACK=TCP(sport=pkt[TCP].dport, dport=pkt[TCP].sport, flags="A",ack=pkt[TCP].seq + 1,seq=pkt[TCP].ack)/get
         send(IP(src=pkt.payload.dst,dst=pkt.payload.src)/ACK)
-    if(pkt.payload.payload.flags & 8 !=0):
+    elif(pkt.payload.payload.flags & 8 !=0):
         'accept push from server, 8 for PSH flag'
         print("tcp push connection from server")
         pushLen = pkt[IP].len - (pkt[IP].ihl * 4 + pkt[TCP].dataofs * 4) 
@@ -55,7 +55,7 @@ def tcp_monitor_callback(pkt):
        	send(IP(src=pkt[IP].dst,dst=pkt[IP].src)/ACKwin14600)
 		
 
-    if(pkt.payload.payload.flags & 1 !=0):
+    elif(pkt.payload.payload.flags & 1 !=0):
         'accept fin from server'
         print ("tcp server fin connection")
         FIN=TCP(sport=pkt[TCP].dport, dport=pkt[TCP].sport, flags="FA", ack=pkt[TCP].seq +1, seq = pkt[TCP].ack)
