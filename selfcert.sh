@@ -6,6 +6,10 @@ rm -rf /var/tmp/cert
 mkdir /var/tmp/cert
 cd /var/tmp/cert
 
+#MODIFY vip, vip_name, max, from TO MEET YOUR LAB
+
+vip="10.1.72.63"
+vip_name="vs_https"
 max=6
 from=1
 
@@ -41,8 +45,8 @@ tmsh save /sys config
 
 cat >> "/var/tmp/cert/clientssl-profile.txt" << EOF
 
-ltm virtual /Common/vs_https {
-    destination /Common/10.1.72.66:443
+ltm virtual /Common/$vip_name {
+    destination /Common/$vip:443
     ip-protocol tcp
     mask 255.255.255.255
     profiles {
@@ -139,7 +143,7 @@ tmsh load sys config
 for ((i=$from; i<=$max; i++))
 do
 
-tmsh modify ltm virtual vs_https profiles add { clientssl-$i }
+tmsh modify ltm virtual $vip_name profiles add { clientssl-$i }
 
 done
 
