@@ -1,0 +1,86 @@
+--- Manual CNI plugin instalation on master and worker node
+
+there are two locations for CNI plugin manual installations:
+
+/opt/cni/bin for CNI plugin binary
+/etc/cni/net.d for CNI config file
+
+/run/flannel/subnet.env should be created flannel plugin is used and after flannel daemonset is deployed  
+
+1, download CNI plugin binary https://github.com/containernetworking/plugins/releases/download/v0.7.4/cni-plugins-amd64-v0.7.4.tgz
+   on both master and worker node, untar to /opt/cni/bin directory
+
+   #mkdir -p /opt/cni/bin
+   #cp cni-plugins-amd64-v0.7.4.tgz /opt/cni/bin; cd /opt/cni/bin; tar zxvf cni-plugins-amd64-v0.7.4.tgz
+
+2, since in this setup I use flannel CNI plugin, CNI config file as below 
+
+#cat /etc/cni/net.d/10-flannel.conflist 
+{
+  "name": "cbr0",
+  "plugins": [
+    {
+      "type": "flannel",
+      "delegate": {
+        "hairpinMode": true,
+        "isDefaultGateway": true
+      }
+    },
+    {
+      "type": "portmap",
+      "capabilities": {
+        "portMappings": true
+      }
+    }
+  ]
+}
+
+--- Manual kubernetes installation from source
+
+1, follow https://github.com/kubernetes/community/blob/master/contributors/devel/running-locally.md "Requirements" and "Clone the repository" section
+
+2, download https://github.com/vincentmli/bash_scripts/blob/master/cluster-master.sh to kubernetes hack directory, cluster-master.sh is based on
+   hack/local-up-cluster.sh, instead of running on node ip 127.0.0.1, it runs on node ip you specified with -m argument, kube-proxy runs in ipvs mode   kubelet uses CNI network plugin
+
+3, compile kubernetes from source and start up master node
+
+   #hack/cluster-master.sh -m <master node ip> 
+   
+  If you've already compiled the Kubernetes components, then you can avoid rebuilding them with this script by using the -O flag
+  
+   #hack/cluster-master.sh -m <master node ip> -O
+
+4, download https://github.com/vincentmli/bash_scripts/blob/master/worker-kubeconfig.sh to master node kubernetes hack directory. 
+  worker-kubeconfig.sh generate kubeconfig for worker node and copy the worker node kubeconfig to worker node /var/run/kubernetes directory
+
+  # hack/worker-kubeconfig.sh -m 192.168.1.18 -w 192.168.1.13
+cluster master node ip: 192.168.1.18
+cluster worker node ip: 192.168.1.13
+........
+.......
+Remember to setup ssh authorization between master and worker node
+
+copy kubeconfig to worker node 192.168.1.13 
+
+kubelet-192.168.1.13.kubeconfig                        100% 6146     3.6MB/s   00:00    
+kube-proxy-192.168.1.13.kubeconfig                     100% 6134     4.2MB/s   00:00    
+
+
+5, repeat step 1 to kubernetes requirements on worker node
+
+
+6, download https://github.com/vincentmli/bash_scripts/blob/master/cluster-worker.sh to kubernetes hack directory, cluster-worker.sh is based on
+   hack/local-up-cluster.sh, instead of running on node ip 127.0.0.1, it runs on node ip you specified with -w argument, -m to specify the master node ip. cluster-worker.sh will only start hyperkube kube-proxy and hyperkube kubelet process since it is worker node, 
+
+
+7, compile from source and startup worker node
+
+   #hack/cluster-worker.sh -m <master node ip> -w <worker node ip>
+
+  If you've already compiled the Kubernetes components, then you can avoid rebuilding them with this script by using the -O flag
+ 
+   #hack/cluster-worker.sh -m <master node ip> -w <worker node ip>  -O
+
+
+Now you should have Kubernetes master node and worker node running 
+
