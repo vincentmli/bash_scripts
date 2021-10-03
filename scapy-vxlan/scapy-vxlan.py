@@ -29,6 +29,11 @@ def udp_monitor_callback(pkt):
 
         udpinfo=UDP(sport=SRCPORT, dport=UDPPORT)
 
+#Having trouble to set the flags here 0x0800 result 0 flags and 0xC
+#The packet will be handled by Cilium BPF attached to netdev, but then
+#Packet get dropped somewhere, maybe in the kernel, so here use the
+#incoming VXLAN flags to set the VXLAN flags, which is 0x0800 and resolved
+#the packet VXLAN packet dropping issue.
         vxlan=VXLAN(flags=vxlanLayer.flags, vni=2)
 
         innerETH=Ether(dst=inLayer2.src, src=inLayer2.dst, type=0x800)
