@@ -1,5 +1,28 @@
 #!/usr/bin/python3
 
+#CiliumNode IP:    10.169.72.233
+#LinuxVM    IP:    10.169.72.236
+#PodCIDR:          10.0.0.0/16
+#ExernalVxlanCIDR: 10.1.1.0/24
+#busybox:          10.0.1.1/24
+#
+#kubectl exec -it busybox -- ping -c 10 10.1.1.2
+#
+#     Test external VXLAN tunnel device packet flow
+#+--------------------------+
+#|                          |            +-----------------+
+#| CiliumNode               |            |  Linux VM       |
+#|                          |            |                 |
+#|  +---------+             |            | ./scapy-vxlan   |
+#|  | busybox |             |            |                 |
+#|  |         |           ens192<------>ens192             |
+#|  +--eth0---+             |            |                 |
+#|      |                   |            +-----------------+
+#|      |                   |
+#|   lxcxxx                 |
+#|      |                   |
+#+------+-----cilium_vxlan--+
+
 from scapy import all
 from scapy.layers import all
 from scapy.layers.inet import IP, ICMP, UDP
