@@ -5,8 +5,23 @@
 #PodCIDR:          10.0.0.0/16
 #ExernalVxlanCIDR: 10.1.1.0/24
 #busybox:          10.0.1.1/24
+
+# Enable cilium external VXLAN tunne device integration
+
+#  CiliumNode
 #
-#kubectl exec -it busybox -- ping -c 10 10.1.1.2
+#  enable-external-vxlan:   "true"
+#  external-vxlan-endpoint: "10.169.72.236"
+#  external-vxlan-cidr:     "10.1.1.0/24"
+#  external-vxlan-mac:      "82:36:4c:98:2e:56"
+#
+#  start ping test from busybox pod
+#  kubectl exec -it busybox -- ping -c 10 10.1.1.2
+
+#  Linux VM
+#  1 change scapy-vxlan sniff interface to ens192 for example
+#  2 change DSTHOST to ens192 interface IP
+#  3 run ./scapy-vxlan
 #
 #     Test external VXLAN tunnel device packet flow
 #+--------------------------+
