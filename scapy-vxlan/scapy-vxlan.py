@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
-#CiliumNode IP:    10.169.72.233
-#LinuxVM    IP:    10.169.72.236
-#PodCIDR:          10.0.0.0/16
-#ExernalVxlanCIDR: 10.1.1.0/24
-#busybox:          10.0.1.1/24
+# CiliumNode IP:    10.169.72.233
+# LinuxVM    IP:    10.169.72.236
+# PodCIDR:          10.0.0.0/16
+# ExernalVxlanCIDR: 10.1.1.0/24
+# busybox:          10.0.1.1/24
 
 # Enable cilium external VXLAN tunne device integration
 
@@ -37,6 +37,53 @@
 #|   lxcxxx                 |
 #|      |                   |
 #+------+-----cilium_vxlan--+
+
+#  Node IP: 10.169.72.239              Node IP: 10.169.72.233
+#+--------------------------+            +-----------------+
+#|                          |            |                 |
+#| CiliumNode               |            |  CiliumNode     |
+#|                          |            |                 |
+#|  +---------+             |            | ./scapy-vxlan   |
+#|  | busybox |             |            |                 |
+#|  |         |           ens192<------>ens192             |
+#|  +--eth0---+             |            |                 |
+#|      |                   |            +-----------------+
+#|      |                   |
+#|   lxcxxx                 |
+#|      |                   |
+#+------+-----cilium_vxlan--+
+
+
+            KIND (K8S in Docker)
+
+ +------------------------------------------------------------------------+
+ |                                              Host(initns)              |
+ |      +------------------------------+    +--------------------+        |
+ |      |                              |    |                    |        |
+ |      |  K8S control node            |    | K8S worker node    |        |
+ |      |                              |    |                    |        |
+ |      |  +--------+ vxlanCIDR:       |    |                    |        |
+ |      |  |busybox |    10.1.5.0/24   |    |                    |        |
+ |      |  |        | vxlanEndpoint:   |    |                    |        |
+ |      |  +-eth0---+    172.18.0.1    |    |                    |        |
+ |      |     |       vxlanMAC:        |    |                    |        |
+ |      |     |         x:x:x:x:x:x:x  |    |                    |        |
+ |      |    lxcxxx@if                 |    |                    |        |
+ |      |     |                        |    |                    |        |
+ |      |     |                        |    |                    |        |
+ |      |     +---cilium_vxlan--+      |    |                    |        |
+ |      |                       |      |    |                    |        |
+ |      |                       |      |    |  172.18.0.3        |        |
+ |      +----------------------veth0---+    +------veth0---------+        |
+ |         172.18.0.2            |                  |                     |
+ |                             veth1               veth2                  |
+ |                               |                  |                     |
+ |  kubectl exec -it \           |                  |                     |
+ |    <busybox> -- \             +-----------br0----+                     |
+ |    ping 10.1.5.1                       172.18.0.1                      |
+ |                                       ./scapy-vxlan.py                 |
+ |                                                                        |
+ +------------------------------------------------------------------------+
 
 from scapy import all
 from scapy.layers import all
