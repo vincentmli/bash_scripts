@@ -1,0 +1,8 @@
+[Unit]
+Description=Spark service
+
+[Service]
+ExecStart=/usr/local/bin/scapy-vxlan.py
+
+[Install]
+WantedBy=multi-user.target
