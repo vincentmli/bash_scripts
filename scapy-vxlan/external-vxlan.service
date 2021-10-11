@@ -2,7 +2,7 @@
 Description=Spark service
 
 [Service]
-ExecStart=/usr/local/bin/scapy-vxlan.py
+ExecStart=/usr/local/bin/external-vxlan.py
 
 [Install]
 WantedBy=multi-user.target

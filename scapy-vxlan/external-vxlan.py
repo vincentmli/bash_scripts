@@ -38,7 +38,7 @@
 # |  kubectl exec -it \           |                  |                     |
 # |    <busybox> -- \             +-----------br0----+                     |
 # |    ping 10.1.5.1                       172.18.0.1                      |
-# |                                       ./scapy-vxlan.py sniff           |
+# |                                       ./external-vxlan.py sniff        |
 # |                                        on host bridge interface        |
 # +------------------------------------------------------------------------+
 #
@@ -101,24 +101,25 @@
 #
 #     # kubectl apply -f busybox-master.yaml
 #
-#    5. Deploy scapy-vxlan in systemd service and startup scapy-vxlan service
+#    5. Deploy external-vxlan.py in systemd service and startup
+#       external-vxlan service
 #
 #      when kind cluster is up, check VM host bridge interface name
-#      and change scapy-vxlan.py script to sniff on the bridge interface
+#      and change external-vxlan.py script to sniff on the bridge interface
 #      for example "br-22b28ede79c2"
 #
-#      # cat /etc/systemd/system/scapy-vxlan.service
+#      # cat /etc/systemd/system/external-vxlan.service
 #     [Unit]
 #     Description=Spark service
 #
 #     [Service]
-#     ExecStart=/usr/local/bin/scapy-vxlan.py
+#     ExecStart=/usr/local/bin/external-vxlan.py
 #
 #     [Install]
 #     WantedBy=multi-user.target
 #
-#     # systemctl enable scapy-vxlan.service
-#     # systemctl start scapy-vxlan.service
+#     # systemctl enable external-vxlan.service
+#     # systemctl start external-vxlan.service
 #
 #    6. Ping from busybox to IP 10.1.5.1 within external VXLAN CIDR 10.1.5.0/24
 #
