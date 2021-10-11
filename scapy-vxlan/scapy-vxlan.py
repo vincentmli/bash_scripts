@@ -1,57 +1,15 @@
 #!/usr/bin/python3
 #
-# CiliumNode IP:    10.169.72.233
-# LinuxVM    IP:    10.169.72.236
-# PodCIDR:          10.0.0.0/16
-# ExernalVxlanCIDR: 10.1.1.0/24
-# busybox:          10.0.1.1/24
-# Enable cilium external VXLAN tunne device integration
-#  CiliumNode
+#     How to test external VXLAN tunnel devices integration
 #
-#  enable-external-vxlan:   "true"
-#  external-vxlan-endpoint: "10.169.72.236"
-#  external-vxlan-cidr:     "10.1.1.0/24"
-#  external-vxlan-mac:      "82:36:4c:98:2e:56"
+#     TEST Dependencies
 #
-#  start ping test from busybox pod
-#  kubectl exec -it busybox -- ping -c 10 10.1.1.2
+#     1. One Virtual Machine with Linux distribution (Ubuntu 20.04 tested)
+#     2. Please reference https://docs.cilium.io/en/stable/gettingstarted/kind/
+#        for Cilium deployment in kind dependencies
+#     3. Install python3-scapy package
 #
-#  Linux VM
-#  1 change scapy-vxlan sniff interface to ens192 for example
-#  2 change DSTHOST to ens192 interface IP
-#  3 run ./scapy-vxlan
-#
-#     Test external VXLAN tunnel device packet flow
-#+--------------------------+
-#|                          |            +-----------------+
-#| CiliumNode               |            |  Linux VM       |
-#|                          |            |                 |
-#|  +---------+             |            | ./scapy-vxlan   |
-#|  | busybox |             |            |                 |
-#|  |         |           ens192<------>ens192             |
-#|  +--eth0---+             |            |                 |
-#|      |                   |            +-----------------+
-#|      |                   |
-#|   lxcxxx                 |
-#|      |                   |
-#+------+-----cilium_vxlan--+
-#
-#
-#  Node IP: 10.169.72.239              Node IP: 10.169.72.233
-#+--------------------------+            +-----------------+
-#|                          |            |                 |
-#| CiliumNode               |            |  CiliumNode     |
-#|                          |            |                 |
-#|  +---------+             |            | ./scapy-vxlan   |
-#|  | busybox |             |            |                 |
-#|  |         |           ens192<------>ens192             |
-#|  +--eth0---+             |            |                 |
-#|      |                   |            +-----------------+
-#|      |                   |
-#|   lxcxxx                 |
-#|      |                   |
-#+------+-----cilium_vxlan--+
-#
+#              Diagram
 #
 #            KIND (K8S in Docker)
 #
@@ -80,9 +38,91 @@
 # |  kubectl exec -it \           |                  |                     |
 # |    <busybox> -- \             +-----------br0----+                     |
 # |    ping 10.1.5.1                       172.18.0.1                      |
-# |                                       ./scapy-vxlan.py                 |
-# |                                                                        |
+# |                                       ./scapy-vxlan.py sniff           |
+# |                                        on host bridge interface        |
 # +------------------------------------------------------------------------+
+#
+#
+#    External VXLAN tunnel devices integration test steps
+#
+#    1. Deploy kind cluster with one control plane node
+#
+#    # cat kind-cluster.yaml
+#    kind: Cluster
+#    apiVersion: kind.x-k8s.io/v1alpha4
+#    nodes:
+#    - role: control-plane
+#    networking:
+#      disableDefaultCNI: true
+#
+#    # kind create cluster --config=kind-cluster.yaml
+#
+#    2.  Deploy Cilium in KIND k8s control plane node with feature enabled
+
+#    # helm install cilium cilium/cilium --version <cilium version> \
+#         --namespace kube-system \
+#         --set externalVxlan.enabled=true \
+#         --set externalVxlan.endpoint="172.18.0.1" \
+#         --set externalVxlan.CIDR="10.1.5.0/24" \
+#         --set externalVxlan.MAC="00:50:56:A0:7D:D8" \
+#         --set kubeProxyReplacement=partial \
+#         --set hostServices.enabled=false \
+#         --set externalIPs.enabled=true \
+#         --set nodePort.enabled=true \
+#         --set hostPort.enabled=true \
+#         --set bpf.masquerade=false \
+#         --set image.pullPolicy=IfNotPresent \
+#         --set ipam.mode=kubernetes
+#
+#    3. docker pull the image and load in kind
+#
+#     # docker pull cilium/cilium:<version>
+#     # kind load docker-image cilium/cilium:<version>
+#
+#    4. deploy busybox on kind control plaine node
+#
+#    # kubectl label node kind-control-plane  dedicated=master
+#    # kubectl taint nodes --all node-role.kubernetes.io/master-
+#    # cat busybox-master.yaml
+#    apiVersion: v1
+#    kind: Pod
+#    metadata:
+#      name: busybox-master
+#      labels:
+#        app: busybox
+#    spec:
+#      nodeSelector:
+#        dedicated: master
+#      containers:
+#      - name: busybox
+#        image: busybox
+#        imagePullPolicy: IfNotPresent
+#        command: ['sh', '-c', 'echo Container 1 is Running ; sleep 3600']
+#
+#     # kubectl apply -f busybox-master.yaml
+#
+#    5. Deploy scapy-vxlan in systemd service and startup scapy-vxlan service
+#
+#      when kind cluster is up, check VM host bridge interface name
+#      and change scapy-vxlan.py script to sniff on the bridge interface
+#      for example "br-22b28ede79c2"
+#
+#      # cat /etc/systemd/system/scapy-vxlan.service
+#     [Unit]
+#     Description=Spark service
+#
+#     [Service]
+#     ExecStart=/usr/local/bin/scapy-vxlan.py
+#
+#     [Install]
+#     WantedBy=multi-user.target
+#
+#     # systemctl enable scapy-vxlan.service
+#     # systemctl start scapy-vxlan.service
+#
+#    6. Ping from busybox to IP 10.1.5.1 within external VXLAN CIDR 10.1.5.0/24
+#
+#    # kubectl exec -it busybox-master  -- ping -c 10 10.1.5.1
 #
 #
 from scapy import all
