@@ -1,0 +1,11 @@
+#This is a BIG-IP bigstart serivce rtmon to monitor BIG-IP Linux
+#route changes with timestamp to trouble shoot Linux route change
+#issue.
+
+./install to install the bigstart rtmon service
+
+ip monitor file /var/log/rtmon.log to show the route changes events
+
+./remove to remove the bigstart rtmon service
+
+

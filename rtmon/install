@@ -1,0 +1,15 @@
+#!/bin/sh
+/bin/rm -rf /var/tmp/bin
+/bin/mkdir /var/tmp/bin
+
+/bin/cp -f rtmon /var/tmp/bin/
+/bin/cp -f rtmon_bigstart /etc/bigstart/scripts/rtmon
+
+echo "start rtmon service..."
+/usr/bin/bigstart add rtmon 
+
+
+echo "wait 10 second to check service status..."
+sleep 10 
+
+/usr/bin/bigstart status rtmon 

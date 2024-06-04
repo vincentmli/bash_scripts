@@ -1,0 +1,6 @@
+#!/bin/sh
+/usr/bin/bigstart stop rtmon; /usr/bin/bigstart status rtmon 
+echo "Deleting rtmon..."
+/usr/bin/bigstart erase rtmon 
+/bin/rm -rf  /root/bin
+/bin/rm -f  /etc/bigstart/scripts/memstats
