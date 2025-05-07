@@ -19,7 +19,7 @@
 #define BUF_LEN         (1024 * (EVENT_SIZE + NAME_MAX + 1))
 #define DISK_CHECK_INTERVAL 5
 #define USAGE_THRESHOLD  5
-#define PID_FILE        "/var/run/disk_mon.pid"
+#define PID_FILE        "/tmp/disk_mon.pid"
 #define LOG_FILE        "/var/tmp/disk_mon.log"
 
 // Debug mode (uncomment for debug output to /tmp)
@@ -191,11 +191,12 @@ int main() {
         log_message("FATAL: No write permission for log file: %m\n");
         exit(EXIT_FAILURE);
     }
-
+/*
     if(access(PID_FILE, W_OK) == -1) {
         log_message("FATAL: PID file directory not writable: %m\n");
         exit(EXIT_FAILURE);
     }
+*/
 
     write_pid();
     log_message("Starting disk monitor daemon\n");
